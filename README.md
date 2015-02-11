@@ -41,7 +41,7 @@ try:
     raise ValueError("foo")
 except ValueError:
     logging.exception("Foobar!")
-
+```
 
 # Example Logstash Config
 
