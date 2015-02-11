@@ -3,6 +3,7 @@
 This implements a logstash-forwarder compatible formatter and log handler.
 """
 from __future__ import print_function
+from backports.ssl_match_hostname import match_hostname, CertificateError
 import struct
 import logging
 import errno
@@ -118,6 +119,15 @@ class StashwardHandler(SocketHandler):
             # if we get an ENOENT, that's because the ca_file is bad
             if e.errno == errno.ENOENT:
                 print("ERROR: " + self.__class__.__name__ + " says: %s" % str(e) + ". This error is probably caused by a bad CA file at %s" % self.ca_certs, file=sys.stderr)
+
+        # some python versions do not do a CN match check, so we have to do it
+        try:
+            match_hostname(socket.getpeercert(), self.host)
+        except CertificateError as e:
+            print("ERROR: " + self.__class__.__name__ + " says: %s" % str(e), file=sys.stderr)
+            socket.close()
+            # raising an OSError will trigger createSocket to retry after a period of time
+            raise OSError("CN Mismatch")
 
         return socket
 
