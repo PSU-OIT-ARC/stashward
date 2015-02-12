@@ -1,1 +1,2 @@
-from .stashward import StashwardFormatter, StashwardHandler
+from .handler import StashwardHandler
+from .formatter import StashwardFormatter

@@ -12,7 +12,7 @@ except ImportError:
 from ssl import wrap_socket
 from threading import Thread
 from stashward import StashwardHandler
-from stashward.stashward import ErrorCode
+from stashward.handler import ErrorCode
 
 
 class FullTest(unittest.TestCase):
