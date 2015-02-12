@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 This implements a logstash-forwarder compatible formatter and log handler.
 """
@@ -182,15 +181,3 @@ class StashwardHandler(SocketHandler):
             string.append(value)
 
         return struct.pack("".join(format_string), *string)
-
-
-if __name__ == "__main__":
-    root = logging.getLogger('')
-    root.setLevel(logging.INFO)
-    handler = StashwardHandler("logs.rc.pdx.edu", 5043, ca_certs="/etc/pki/tls/certs/PSUCA.crt")
-    root.addHandler(handler)
-    logging.info("Foo")
-    try:
-        raise ValueError("foo")
-    except ValueError:
-        logging.exception("Foobar!")
