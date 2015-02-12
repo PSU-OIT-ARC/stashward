@@ -24,6 +24,7 @@ host you are connecting to.
 
 ```python
 import logging
+from stashward import StashwardHandler
 
 root = logging.getLogger('')
 root.setLevel(logging.INFO)
