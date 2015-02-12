@@ -10,7 +10,7 @@ try:
 except ImportError:
     import unittest
 from ssl import wrap_socket
-from threading import Thread
+from multiprocessing import Process
 from stashward import StashwardHandler
 from stashward.handler import ErrorCode
 
@@ -18,7 +18,7 @@ from stashward.handler import ErrorCode
 class FullTest(unittest.TestCase):
     """
     This test creates a listening SSL socket on an abitrary port and waits for
-    connections on another thread. We then setup the log handler that connects
+    connections on another process. We then setup the log handler that connects
     on that socket, and send logging messages to it.
     """
 
@@ -49,12 +49,8 @@ class FullTest(unittest.TestCase):
             assert(b"Traceback" in client.read())
             s.close()
 
-        self.thread = Thread(target=ensure_messages_are_correct, args=[s])
-        self.thread.start()
-
-    def tearDown(self):
-        self.thread.join()
-        super(FullTest, self).tearDown()
+        # start the listening process
+        Process(target=ensure_messages_are_correct, args=[s]).start()
 
     def test(self):
         """
