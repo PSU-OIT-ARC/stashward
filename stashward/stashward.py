@@ -2,7 +2,7 @@
 This implements a logstash-forwarder compatible formatter and log handler.
 """
 from __future__ import print_function
-from backports.ssl_match_hostname import match_hostname, CertificateError
+import traceback
 import struct
 import logging
 import errno
@@ -10,6 +10,20 @@ import socket
 import sys
 from logging.handlers import SocketHandler
 from ssl import wrap_socket, CERT_REQUIRED, SSLError
+try:
+    from ssl import match_hostname, CertificateError
+except ImportError:
+    from backports.ssl_match_hostname import match_hostname, CertificateError
+
+
+class ErrorCode:
+    """
+    We use some random numbers for error codes to make unit testing a little
+    easier, and for greppability
+    """
+    GENERIC_SSL_FAILURE = 42218
+    CN_MISMATCH = 34624
+    FILE_NOT_FOUND = 17253
 
 
 class StashwardFormatter(logging.Formatter):
@@ -107,28 +121,37 @@ class StashwardHandler(SocketHandler):
 
     def makeSocket(self):
         """Make the socket and wrap it with SSL. A valid certificate is required from a trusted CA"""
-        socket = SocketHandler.makeSocket(self)
+        s = SocketHandler.makeSocket(self)
 
         try:
-            socket = wrap_socket(socket, cert_reqs=CERT_REQUIRED, ca_certs=self.ca_certs)
+            s = wrap_socket(s, cert_reqs=CERT_REQUIRED, ca_certs=self.ca_certs)
         except SSLError as e:
             # the ssl certificate was probably bad
-            print("ERROR: " + self.__class__.__name__ + " says: " + str(e) + ". This is likely caused by a CN mismatch, or an invalid certificate file at %s" % self.ca_certs, file=sys.stderr)
+            # since logging doesn't work, print to stderr
+            traceback.print_exc()
+            print("ERROR %d: This is likely caused by a CN mismatch, an invalid certificate file at %s, or a verification failure based on your CA file" % (ErrorCode.GENERIC_SSL_FAILURE, self.ca_certs), file=sys.stderr)
+            s.close()
+            raise
         except OSError as e:
+            s.close()
             # if we get an ENOENT, that's because the ca_file is bad
             if e.errno == errno.ENOENT:
-                print("ERROR: " + self.__class__.__name__ + " says: %s" % str(e) + ". This error is probably caused by a bad CA file at %s" % self.ca_certs, file=sys.stderr)
+                traceback.print_exc()
+                print("ERROR %d: This error is probably caused by a bad CA file at %s" % (ErrorCode.FILE_NOT_FOUND, self.ca_certs), file=sys.stderr)
+            s.close()
+            raise
 
         # some python versions do not do a CN match check, so we have to do it
         try:
-            match_hostname(socket.getpeercert(), self.host)
+            match_hostname(s.getpeercert(), self.host)
         except CertificateError as e:
-            print("ERROR: " + self.__class__.__name__ + " says: %s" % str(e), file=sys.stderr)
-            socket.close()
-            # raising an OSError will trigger createSocket to retry after a period of time
-            raise OSError("CN Mismatch")
+            traceback.print_exc()
+            print("ERROR %d: The CN provided by the server didn't match the host you connected to" % ErrorCode.CN_MISMATCH, file=sys.stderr)
+            s.close()
+            # raising a socket error will trigger createSocket to retry after a period of time
+            raise socket.error("CN Mismatch")
 
-        return socket
+        return s
 
     def makePickle(self, record):
         """Format the record, and turn it into a logstash compatible packet"""
