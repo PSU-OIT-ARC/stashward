@@ -14,7 +14,7 @@ offset. Those must be sent with every packet. And you also **cannot** send an
 `@timestamp` field. I do not know if that is a logstash-forwarder issue, or a
 logstash issue.
 
-# Opinions
+# Security
 
 Following logstash-forwarder's lead, a server SSL certificate is required, and
 it must be signed by a CA. The common name on the certificate must match the
@@ -62,3 +62,9 @@ output {
     }
 }
 ```
+
+# Testing
+
+The unit tests can be run in Python2 and Python3 by running:
+
+    make test
