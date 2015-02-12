@@ -35,11 +35,11 @@ class StashwardFormatter(logging.Formatter):
         """Tack on all the fields from the extra parameter on logging calls"""
         # The list contains all the attributes listed in
         # http://docs.python.org/library/logging.html#logrecord-attributes
-        skip_list = (
+        skip_list = set([
             'args', 'asctime', 'created', 'exc_info', 'exc_text', 'filename',
             'funcName', 'id', 'levelname', 'levelno', 'lineno', 'module',
             'msecs', 'msecs', 'message', 'msg', 'name', 'pathname', 'process',
-            'processName', 'relativeCreated', 'thread', 'threadName', 'extra')
+            'processName', 'relativeCreated', 'thread', 'threadName', 'extra', 'stack_info'])
 
         if sys.version_info < (3, 0):
             easy_types = (basestring, bool, dict, float, int, list, type(None))
