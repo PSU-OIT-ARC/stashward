@@ -1,5 +1,7 @@
 # Stashward
 
+[![Build Status](https://travis-ci.org/PSU-OIT-ARC/stashward.svg?branch=master)](https://travis-ci.org/PSU-OIT-ARC/stashward)
+
 Stashward is a log formatter and handler for Python that implements the (poorly specified)
 logstash-forwarder protocol.
 
