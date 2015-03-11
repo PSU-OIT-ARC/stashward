@@ -16,6 +16,10 @@ offset. Those must be sent with every packet. And you also **cannot** send an
 `@timestamp` field. I do not know if that is a logstash-forwarder issue, or a
 logstash issue.
 
+# Install
+
+    pip install stashward
+
 # Security
 
 Following logstash-forwarder's lead, a server SSL certificate is required, and
