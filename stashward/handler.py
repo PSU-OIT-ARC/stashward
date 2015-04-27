@@ -1,12 +1,17 @@
+from __future__ import unicode_literals
 from __future__ import print_function
+
 import traceback
 import struct
 import logging
 import errno
 import socket
 import sys
+import six
+
 from logging.handlers import SocketHandler
 from ssl import wrap_socket, CERT_REQUIRED, SSLError
+
 try:
     from ssl import match_hostname, CertificateError
 except ImportError:
@@ -23,7 +28,6 @@ class ErrorCode:
     CN_MISMATCH = 34624
     FILE_NOT_FOUND = 17253
 
-
 class StashwardHandler(SocketHandler):
     # The sequence number is 32 bits, so it should rollover to 0 when it gets there
     MAX_SEQUENCE_NUMBER = 2**32-1
@@ -39,7 +43,7 @@ class StashwardHandler(SocketHandler):
 
         # immediately send a packet setting the windows size to something huge
         # since we don't care about ACKs
-        self.send(struct.pack("!ssI", b"1", b"W", self.MAX_SEQUENCE_NUMBER))
+        self.send(struct.pack(b"!ssI", b"1", b"W", self.MAX_SEQUENCE_NUMBER))
 
     def makeSocket(self):
         """Make the socket and wrap it with SSL. A valid certificate is required from a trusted CA"""
@@ -104,25 +108,25 @@ class StashwardHandler(SocketHandler):
         The data *MUST* include a key/value pair for "host", "line" and
         "offset". That fact isn't documented anywhere but here. You're welcome.
         """
-        format_string = ["!ssII"]
+        format_string = [b"!ssII"]
         string = [b"1", b"D", sequence_number, len(data)]
 
         for key, value in data.items():
-            # encode the keys and values as utf8
-            key = str(key).encode("utf8")
-            value = str(value).encode("utf8")
+            # encode the keys and values as utf8-encoded bytestrings
+            key = six.text_type(key).encode('utf-8')
+            value = six.text_type(value).encode('utf-8')
 
             # tack on the key length
-            format_string.append("I")
+            format_string.append(b"I")
             string.append(len(key))
             # tack on the key itself
-            format_string.append(str(len(key)) + "s")
+            format_string.append(six.text_type("%ds" % (len(key))).encode('utf-8'))
             string.append(key)
             # tack on the value length
-            format_string.append("I")
+            format_string.append(b"I")
             string.append(len(value))
             # tack on the value
-            format_string.append(str(len(value)) + "s")
+            format_string.append(six.text_type("%ds" % (len(value))).encode('utf-8'))
             string.append(value)
 
-        return struct.pack("".join(format_string), *string)
+        return struct.pack(b"".join(format_string), *string)
