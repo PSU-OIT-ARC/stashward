@@ -16,7 +16,7 @@ except AttributeError:
 
 setup(
     name="stashward",
-    version='0.1.2',
+    version='0.1.3',
     author='Matt Johnson',
     author_email='mdj2@pdx.edu',
     description="A log formatter and handler for Python that implements the (poorly specified) logstash-forwarder protocol.",
