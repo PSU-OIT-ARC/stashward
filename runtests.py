@@ -101,6 +101,18 @@ class TestHandler(unittest.TestCase):
             self.assertEqual(packet, b'1D\x95\x3c\x2b\x44\x00\x00\x00\x02\x00\x00\x00\x014\x00\x00\x00\x014\x00\x00\x00\x03foo\x00\x00\x00\x03bar')
         handler.close()
 
+    def test_unicode(self):
+        """This is a regression test for handling unicode in Python2"""
+        handler = StashwardHandler("google.com", 443, ca_certs="certs/ca-bundle.crt")
+        # the unicode codepoint 044f (in hex) (or 1103 in decimal) is a
+        # backwards looking R character. The UTF8 encoding of this particular
+        # character is 0xD18F
+        d = {u"\u044f": u"\u044f"}
+        arbitrary_sequence_number = 5
+        packet = handler.packetize(d, arbitrary_sequence_number)
+        self.assertEqual(packet, b'1D\x00\x00\x00\x05\x00\x00\x00\x01\x00\x00\x00\x02\xd1\x8f\x00\x00\x00\x02\xd1\x8f')
+        handler.close()
+
 
 class TestSSL(unittest.TestCase):
     def setUp(self):
