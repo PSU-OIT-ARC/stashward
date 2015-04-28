@@ -2,7 +2,7 @@
 from setuptools import setup
 
 # do some feature detection to see what extra packages need to be installed
-install_requires = []
+install_requires = ['six']
 try:
     from ssl import match_hostname, CertificateError
 except ImportError:
@@ -16,7 +16,7 @@ except AttributeError:
 
 setup(
     name="stashward",
-    version='0.1.1',
+    version='0.1.2',
     author='Matt Johnson',
     author_email='mdj2@pdx.edu',
     description="A log formatter and handler for Python that implements the (poorly specified) logstash-forwarder protocol.",
